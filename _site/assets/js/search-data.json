@@ -1,0 +1,128 @@
+{"0": {
+    "doc": "Supported apps",
+    "title": "Supported apps",
+    "content": "//TBD . ",
+    "url": "/apps.html",
+    
+    "relUrl": "/apps.html"
+  },"1": {
+    "doc": "Implementation guide",
+    "title": "The lib c",
+    "content": "Since the Linux kernel v5.6, MPTCP can be used simply by selecting MPTCP in the socket command. like this: socket(AF_INET(6), SOCK_STREAM, IPPROTO_MPTCP) . IPPROTO_MPTCP is defined as 262, that is 256 more than the 6 of TCP. In case MPTCP is not supported by the kernel or otherwise disabled, multiple errno: . | ENOPROTOOPT: Protocol not available, linked to net.mptcp.enabled sysctl | EPROTONOSUPPORT: Protocol not supported, MPTCP is not compiled on &gt;= v5.6 | EINVAL: Invalid argument, MPTCP is not available on kernels &lt; 5.6 | . ",
+    "url": "/guide.html#the-lib-c",
+    
+    "relUrl": "/guide.html#the-lib-c"
+  },"2": {
+    "doc": "Implementation guide",
+    "title": "Quick exemples",
+    "content": "MPTCPize . MPTCP comes with a tool called mptcpize . C . #include &lt;sys/socket.h&gt; #ifndef IPPROTO_MPTCP #define IPPROTO_MPTCP 262 #endif int s; if (-1 == (s = socket(AF_INET, SOCK_STREAM, IPPROTO_MPTCP))) { s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) } . Python . import socket try: IPPROTO_MPTCP = socket.IPPROTO_MPTCP except AttributeError: IPPROTO_MPTCP = 262 try: s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, IPPROTO_MPTCP) except: s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, IPPROTO_TCP) . ",
+    "url": "/guide.html#quick-exemples",
+    
+    "relUrl": "/guide.html#quick-exemples"
+  },"3": {
+    "doc": "Implementation guide",
+    "title": "MPTCP infos &amp; options",
+    "content": " ",
+    "url": "/guide.html#mptcp-infos--options",
+    
+    "relUrl": "/guide.html#mptcp-infos--options"
+  },"4": {
+    "doc": "Implementation guide",
+    "title": "Implementation guide",
+    "content": " ",
+    "url": "/guide.html",
+    
+    "relUrl": "/guide.html"
+  },"5": {
+    "doc": "Home",
+    "title": "Features",
+    "content": "As of Linux v5.19, major features of MPTCP include: . | Support of the IPPROTO_MPTCP protocol in socket() system calls. | Fallback from MPTCP to TCP if the peer or a middlebox do not support MPTCP. | Path management using either an in-kernel or userspace path manager. | Socket options that are commonly used with TCP sockets. | Debug features including MIB counters, diag support (used by the ss command), and tracepoints. | . See the ChangeLog for more details. ",
+    "url": "/#features",
+    
+    "relUrl": "/#features"
+  },"6": {
+    "doc": "Home",
+    "title": "Communication",
+    "content": ". | Mailing List: mptcp@lists.linux.dev (and archives) | IRC: #mptcp on libera.chat | Online Meetings | . ",
+    "url": "/#communication",
+    
+    "relUrl": "/#communication"
+  },"7": {
+    "doc": "Home",
+    "title": "Projects",
+    "content": ". | Maintained by MPTCP community members . | Kernel development on GitHub: https://github.com/multipath-tcp/mptcp_net-next/ | Multipath TCP Daemon: https://github.com/intel/mptcpd . | The mptcpd daemon can do full userspace path management or control the in-kernel path manager. | Includes the mptcpize utility to allow legacy TCP binaries to use MPTCP. | . | Packetdrill with MPTCP enhancements: https://github.com/multipath-tcp/packetdrill | . | Projects with MPTCP-related enhancements . | iproute2 (for the ip mptcp command) | Network Manager: MPTCP features are included starting with v1.40. | Multipath TCP applications: A project to coordinate MPTCP updates for popular TCP applications. | . | . ",
+    "url": "/#projects",
+    
+    "relUrl": "/#projects"
+  },"8": {
+    "doc": "Home",
+    "title": "Kernel Development",
+    "content": ". | Git Repository (branch descriptions) | Issue tracker | Patchwork | Continuous Integration | Testing | . ",
+    "url": "/#kernel-development",
+    
+    "relUrl": "/#kernel-development"
+  },"9": {
+    "doc": "Home",
+    "title": "Home",
+    "content": "Multipath TCP (MPTCP) builds on top of TCP to improve connection redundancy and performance by sharing a network data stream across multiple underlying TCP sessions. The MPTCP v1 protocol is defined in RFC 8684. The Linux MPTCP community develops and maintains the MPTCP v1 stack in the Linux kernel (v5.6 or later) and associated userspace tools and libraries. This site is new and still evolving, so please refer to the Linux MPTCP Upstream Project wiki for additional information. For out-of-tree kernels before v5.6 and an implementation of the experimental MPTCP v0 protocol, see https://multipath-tcp.org/ . ",
+    "url": "/",
+    
+    "relUrl": "/"
+  },"10": {
+    "doc": "Q&A",
+    "title": "Security &amp; Privacy",
+    "content": "MPTCP aims to maintain the same level of security as traditional TCP, with specific mechanisms to counter common network attacks. While designed to be secure, vulnerabilities, as with any protocol, can occur. Privacy implications, such as the potential for path correlation by servers, are important considerations. Regarding the security implications of the Linux kernel implementations, it is like any software; there might be issues. But the Linux kernel is also known to quickly fix security issues once they have been identified. ",
+    "url": "/questions.html#security--privacy",
+    
+    "relUrl": "/questions.html#security--privacy"
+  },"11": {
+    "doc": "Q&A",
+    "title": "Why &amp; When to Enable by Default",
+    "content": "Enabling MPTCP by default on servers is beneficial for enhancing client connectivity without impacting non-MPTCP traffic performance. This default enablement facilitates broader adoption by eliminating the need for manual configuration by server administrators. Importantly, the fallback to standard TCP in environments not supporting MPTCP is a low-cost operation, ensuring that enabling MPTCP does not significantly alter server operations or performance. ",
+    "url": "/questions.html#why--when-to-enable-by-default",
+    
+    "relUrl": "/questions.html#why--when-to-enable-by-default"
+  },"12": {
+    "doc": "Q&A",
+    "title": "Unsuported TCP options",
+    "content": "MPTCP support most TCP extenions but not yet all of them (the most obscure ones). It is also documented that . ",
+    "url": "/questions.html#unsuported-tcp-options",
+    
+    "relUrl": "/questions.html#unsuported-tcp-options"
+  },"13": {
+    "doc": "Q&A",
+    "title": "Performance Impact",
+    "content": "MPTCP is engineered to improve network resilience and utilization without adversely affecting the performance of TCP applications. It adds a manageable overhead that becomes advantageous when leveraging multiple network paths, potentially increasing throughput and reliability. ",
+    "url": "/questions.html#performance-impact",
+    
+    "relUrl": "/questions.html#performance-impact"
+  },"14": {
+    "doc": "Q&A",
+    "title": "Supported Operating Systems",
+    "content": "Originally seen as predominantly supported by Linux (from kernel version 5.6), the adoption of MPTCP extends beyond to various platforms including iOS. It is important to note that iOS implements its own version of MPTCP. ",
+    "url": "/questions.html#supported-operating-systems",
+    
+    "relUrl": "/questions.html#supported-operating-systems"
+  },"15": {
+    "doc": "Q&A",
+    "title": "MPTCP vs. QUIC",
+    "content": "MPTCP enhances TCP’s functionality at the transport layer by enabling multipath capabilities, whereas QUIC, built atop UDP, focuses on reducing latency and improving connection migration. While both propose multipath functionality, their development and standardization stages differ. ",
+    "url": "/questions.html#mptcp-vs-quic",
+    
+    "relUrl": "/questions.html#mptcp-vs-quic"
+  },"16": {
+    "doc": "Q&A",
+    "title": "Middleboxes",
+    "content": "MPTCP’s interaction with middleboxes, which may not properly handle its extensions, is meticulously designed to ensure fallback to standard TCP when necessary. This ensures uninterrupted connectivity amidst the presence of NATs and firewalls. MPTCP represents a significant advancement in TCP technology, catering to modern internet’s complex network topologies and connectivity environments. Its ongoing development aims for widespread compatibility and realization of its security and performance benefits. ",
+    "url": "/questions.html#middleboxes",
+    
+    "relUrl": "/questions.html#middleboxes"
+  },"17": {
+    "doc": "Q&A",
+    "title": "Q&A",
+    "content": " ",
+    "url": "/questions.html",
+    
+    "relUrl": "/questions.html"
+  }
+}
