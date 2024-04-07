@@ -1,5 +1,6 @@
 ---
 layout: home
+title: portfolio
 ---
 ## Hours recap
 
@@ -18,7 +19,7 @@ layout: home
 
 ### Catch the flag
 
-### Hachaton
+### Hackaton
 In october of 2022 I participated in an Hackaton at EPHEC-LLN on the subject of green developement. The objective was to come up with and idea of app/website that would help solve an issue liked with sustainable developement. The idea we came up with was a wesite that would be a News source but only chowing positive articles. To reduce the need for administrators and content managers, we planned the site to work colaboratively. A bit like wikipedia.
 
 It was really interesting to have the perspective of a marketing student while discussing features and the idea itself. Their insight was enlightening.
@@ -49,6 +50,8 @@ to keep the chat neat, the message conaining the command is deleted by the bot, 
 When embarking on this project, I was not familiar with API work. It was really intertesting to navigate the existing data structures and hooks of discord to create this bot. It was also a good oportunity to better my python, wich was not amazing at the time.
 
 [git repository](https://github.com/mux99/Nawak-Bot)
+
+*note: Reader, I would be delighted to discuss it further with you if you are interested ^^*
 
 ### Lab power supply
 This is a short project for which adencements where made verry slowly over time, one hour here, half an hour there. The goal was to convert an old PC power supply I had lying around, and convert it to a lab power supply that could output, 12 and 5 volts. It was not a difficult project by any stretch of imagination, but it was one of the more pleasant ones.
