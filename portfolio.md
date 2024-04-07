@@ -1,6 +1,9 @@
 ---
 layout: home
 title: portfolio
+nav_order: 2
+nav_titles: true
+titles_max_depth: 3
 ---
 ## Hours recap
 
@@ -9,10 +12,11 @@ title: portfolio
 | Catch the flag | 
 | Hackaton 20225 | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
 | Discord Bot | personnal | 25~30h | 10h | 2021/12/? | 2023/02/16 |
-| Lab power supply | personnal | 5h | 5h | 2020/?/? | 2024/4/7 |
+| Lab power supply | personnal | 6h | 6h | 2020/?/? | 2024/4/7 |
 | Pc upgrade |
 | TETRIS project |
 | Raspberry pi Minecraft server |
+|  |
 ||
 
 ## Details
