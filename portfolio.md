@@ -9,15 +9,14 @@ titles_max_depth: 3
 
 | activity | theme | real hours | validated | start | end |
 | --- | --- | ---:| ---:| --- | --- |
-| Catch the flag | ctf | 12h | 10h | ? | ? |
-| Hackaton 20225 | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
-| Discord Bot | personnal | 25~30h | 10h | 2021/12/? | 2023/02/16 |
+| Catch the flag 2021 | ctf | 12h | 10h | ? | ? |
+| Hackaton 2022 | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
+| Discord Bot | personnal | 35~40h | 10h | 2021/12/? | 2023/02/16 |
 | Lab power supply | personnal | 12h | 10h | 2020/?/? | 2024/04/7 |
 | Nuke plugin | for a friend | 6h | 6h | 2024/04/9 | 2024/04/9 |
-| Pc upgrade |
+| Raspberry Minecraft server | personnal | ~20h | 10 | 2022/?/? | present |
+| Pc upgrade | 
 <!--| TETRIS project |-->
-| Raspberry pi Minecraft server |
-||
 
 ## Details
 
@@ -53,6 +52,26 @@ to keep the chat neat, the message conaining the command is deleted by the bot, 
 
 When embarking on this project, I was not familiar with API work. It was really intertesting to navigate the existing data structures and hooks of discord to create this bot. It was also a good oportunity to better my python, wich was not amazing at the time.
 
+I am really proud of how it tured out, I made the bot with extendability in mind so each command the users can use. To add a new command, it is as easy as adding the new file with the command to the command directory and updating the command list in `data/command.csv`.
+The command file should at minimum contain:
+- A comment at the first line of the file. From the first line, each conequitive comment line is cosidered part of the 'man' for that command and will be displayed to users when they enter `*help <name of a command>`.
+- a function to call when calling the command. the convention is ``<command keyword>_C`. It is not ideal, but it is what I chose at the time.
+
+The update of the `command.csv` is necesary to tell the bot exactly what command exist and where they can be found. It is also there that, the permissions for the comand are set as follows:
+```
+#name, #ref, #perm
+help, commands.manual.help_C, @everyone
+games, commands.games.games_C, @everyone
+wtp, commands.wtp.wtp_C, @everyone
+ip, commands.get_ip.get_ip_C, @IP-getter
+```
+
+This project was also the first time I worked with asycronous functions. It was even a source of problem for the callback style I used for the commands.
+The same bahaviour that is so usefull when expending the command set but a pain when working out how data will flow to and from the functions when they are called. In the end I settled for a redundent aproach.
+Each command is given a array of all arguments used in the call to the command (like argc in C), but they are also passed the original message object, in case they need to access it or it's info directly.
+
+This approach allowed for make lightweight command by only using the args, but also the versatility of using the message object.
+
 [git repository](https://github.com/mux99/Nawak-Bot)
 
 *note: Reader, I would be delighted to discuss it further with you if you are interested ^^*
@@ -60,6 +79,120 @@ When embarking on this project, I was not familiar with API work. It was really 
 ### Lab power supply
 This is a short project for which adencements where made verry slowly over time, one hour here, half an hour there. The goal was to convert an old PC power supply I had lying around, and convert it to a lab power supply that could output, 12 and 5 volts. It was not a difficult project by any stretch of imagination, but it was one of the more pleasant ones.
 
-### Pc upgrade
+I began with a standard atx power supply, I cut all atx connectors, removed the aluminum box. The nex step was carefully removing all the redondent cables, for exemple the ground had more or less 20 cables, where I only need one.
+
+I felt i needed a new box, so I made one out of accrylic panes. The preparation of the acrylic was the most time consuming. I ordered it in a big pane of 50cm by 50cm. The cutting process is long with a simple exacto blade, but it makes for nicer cuts.
+
+![](/assets/ps_1.jpg)
+![](/assets/ps_2.jpg)
+
+### Nuke plugin
+A friend of mine is doing animation as part of his studies. He needed a script to help in the process of setting up layers of a mat painting in order to animate the paralax.
+
+It was quite entertaining to spend a day learning about the process of animation in order to pull of the script.
+The goal of the script is to extract the layers of the file given and prepare each of them like bellow.
+
+![](/assets/script_1.png)
+
+Nuke uses a graph to represent the properties of objects in the scene. The script create and links those nodes like bellow.
+
+![](/assets/script_2.png)
+![](/assets/scipt_3.png)
+
+I did not invent the method, I just had to follow a tutorial for the method to use [here](https://www.youtube.com/watch?v=feANAsdahRk). The hard part was the unclear documentation for the scripting process. 
+This project was a welcome distraction in the hecktic process of finishing the various projects of this end of year.
+
+<details markdown="block">
+<summary>script</summary>
+
+```python
+import nuke
+import nukescripts.psd
+import re
+
+def purgeChilds(parent, keep=[]):
+    out = False
+    for node in parent.dependent():
+        if re.sub(r'\d+$', '', node.name()) in keep:
+            purgeChilds(node, keep)
+            out = True
+        else:
+            keep = purgeChilds(node, keep)
+            if not keep:
+                nuke.delete(node)
+    return out
+
+def getChilds(parent, nodeType=""):
+    if len(parent.dependent()) == 0:
+        return []
+    out = []
+    for node in parent.dependent():
+        if re.sub(r'\d+$', '', node.name()) == nodeType:
+            out.append(node.name())
+        out += getChilds(node, nodeType)
+    return out
+
+
+def run():
+    nodes = nuke.selectedNodes()
+    read = None
+    camera = None
+    for node in nodes:
+        if re.sub(r'\d+$', '', node.name()) == "Read":
+            read = node
+        elif re.sub(r'\d+$', '', node.name()) == "Camera":
+            camera = node
+
+    if read is None or camera is None:
+        nuke.message("Please select a Camera and a Read node.")
+
+    nukescripts.psd.breakoutLayers(read)
+    purgeChilds(read, ["Shuffle"])
+
+    scene = nuke.createNode('GeoScene', inpanel=False)
+    scene.setXpos(read.xpos())
+    scene.setYpos(read.ypos() + 600)
+
+    haperture = camera['haperture'].value()
+    shuffles = getChilds(read, "Shuffle")
+    for n in range(len(shuffles)):
+        shuffle = nuke.toNode(shuffles[n])
+        premult = nuke.createNode('Premult', inpanel=False)
+        premult.connectInput(0, shuffle)
+        premult.setXpos(shuffle.xpos())
+        premult.setYpos(shuffle.ypos() + 50)
+        
+        crop = nuke.createNode('Crop', inpanel=False)
+        crop.setInput(0, premult)
+        crop.setXpos(premult.xpos())
+        crop.setYpos(premult.ypos() + 50)
+
+        card = nuke.createNode('GeoCard', inpanel=False)
+        card.connectInput(0, crop)
+        card.setXpos(crop.xpos())
+        card.setYpos(crop.ypos() + 50)
+        card['lens_in_focal'].setValue(haperture)
+        card['lens_in_haperture'].setValue(haperture)
+        card['z'].setValue((n*100)+100)
+        scene.setInput(scene.inputs(), card)
+
+    scan = nuke.createNode('ScanlineRender2', inpanel=False)
+    scan.connectInput(0, camera)
+    scan.connectInput(1, scene)
+    scan.setXpos(scene.xpos() - 50)
+    scan.setYpos(scene.ypos() + 100)
+    camera.setXpos(scene.xpos() - 100)
+    camera.setYpos(scene.ypos())
+```
+
+</details>
+
+### Raspberry Minecraft Server
+In 2022, I got back to playing minecraft, and wandered if I could host my own server. I already had a raspberry 4B which is powerfull enough to run it. Installing a minsecraft server on linux was easy enough, the part i spent the most time on what the writing of the scripts used to launch and backup the server. Saddly since I repurposed the SSD used by the server earlyer this year, I lost the scripts and the world save.
+
+At the moment the server is comoletely gone, I have plans to revive it in the summer but I need the raspberry for my End of study report.
+
+*note: \<to future me\>, the minecraft wiki has a great tutorial for the basis of the scipts* [here](https://minecraft.wiki/w/Tutorials/Setting_up_a_server)
+
 
 <!--### TETRIS project-->
