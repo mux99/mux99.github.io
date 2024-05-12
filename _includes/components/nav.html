@@ -6,13 +6,15 @@
 
 {%- assign first_level_pages = sorted_pages
     | where_exp: "item", "item.parent == nil" -%}
-<img src="{{ site.url }}/assets/icon.png" width="50%" style="margin: -2rem auto 15px; display: block; border-radius: 2%;">
+<a href="{{ site.baseurl }}/">
+  <img src="{{ site.baseurl }}/assets/mptcp_logo.svg" width="50%" style="margin: -2rem auto 15px; display: block;">
+</a>
 
 <ul class="nav-list">
 {%- for node in first_level_pages -%}
-  {% assign node_lines = node.content | newline_to_br | split: "<br />" %}
-  {% assign nav_titles = node.nav_titles | default: false%}
-  {% assign titles_max_depth = node.titles_max_depth | default: 1 %}
+  {%- assign node_lines = node.content | newline_to_br | split: "<br />" -%}
+  {%- assign nav_titles = node.nav_titles | default: false -%}
+  {%- assign titles_max_depth = node.titles_max_depth | default: 1 -%}
   <li class="nav-list-item">
     {%- if node.has_children or (node_lines.size > 1 and nav_titles) -%}
     <button class="nav-list-expander btn-reset" aria-label="toggle items in {{ node.title }} category" aria-pressed="false">
@@ -51,9 +53,6 @@
       {%- endfor -%}
     </ul>
     {%- endunless -%}
-  </li>
-{%- endfor -%}
-</ul>
   </li>
 {%- endfor -%}
 </ul>
