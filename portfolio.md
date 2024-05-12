@@ -9,14 +9,14 @@ titles_max_depth: 3
 
 | activity | theme | real hours | validated | start | end |
 | --- | --- | ---:| ---:| --- | --- |
-| Catch the flag | 
+| Catch the flag | ctf | 12h | 10h | ? | ? |
 | Hackaton 20225 | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
 | Discord Bot | personnal | 25~30h | 10h | 2021/12/? | 2023/02/16 |
-| Lab power supply | personnal | 6h | 6h | 2020/?/? | 2024/4/7 |
+| Lab power supply | personnal | 12h | 10h | 2020/?/? | 2024/04/7 |
+| Nuke plugin | for a friend | 6h | 6h | 2024/04/9 | 2024/04/9 |
 | Pc upgrade |
-| TETRIS project |
+<!--| TETRIS project |-->
 | Raspberry pi Minecraft server |
-|  |
 ||
 
 ## Details
@@ -62,4 +62,4 @@ This is a short project for which adencements where made verry slowly over time,
 
 ### Pc upgrade
 
-### TETRIS project
+<!--### TETRIS project-->
