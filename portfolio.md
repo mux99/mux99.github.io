@@ -15,8 +15,14 @@ titles_max_depth: 3
 | Lab power supply | personnal | 12h | 10h | 2020/?/? | 2024/04/7 |
 | Nuke plugin | for a friend | 6h | 6h | 2024/04/9 | 2024/04/9 |
 | Raspberry Minecraft server | personnal | ~20h | 10 | 2022/?/? | present |
-| Pc upgrade | 
-<!--| TETRIS project |-->
+
+## Honorable mentions
+
+### tetris
+
+### forging mechanics
+
+### pc upgrades
 
 ## Details
 
@@ -193,6 +199,3 @@ In 2022, I got back to playing minecraft, and wandered if I could host my own se
 At the moment the server is comoletely gone, I have plans to revive it in the summer but I need the raspberry for my End of study report.
 
 *note: \<to future me\>, the minecraft wiki has a great tutorial for the basis of the scipts* [here](https://minecraft.wiki/w/Tutorials/Setting_up_a_server)
-
-
-<!--### TETRIS project-->
