@@ -9,24 +9,45 @@ titles_max_depth: 3
 
 | activity | theme | real hours | validated | start | end |
 | --- | --- | ---:| ---:| --- | --- |
-| Catch the flag 2021 | ctf | 12h | 10h | ? | ? |
-| Hackaton 2022 | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
-| Discord Bot | personnal | 35~40h | 10h | 2021/12/? | 2023/02/16 |
-| Lab power supply | personnal | 12h | 10h | 2020/?/? | 2024/04/7 |
-| Nuke plugin | for a friend | 6h | 6h | 2024/04/9 | 2024/04/9 |
-| Raspberry Minecraft server | personnal | ~20h | 10 | 2022/?/? | present |
+| [Catch the flag 2021](#catch-the-flag) | ctf | 12h | 10h | 2022/02/26 | 2022/02/26 |
+| [Hackaton 2022](#hackaton) | hachaton | 48h | 10h | 2022/10/28 | 2022/10/30 | 
+| [Discord Bot](#discord-bot) | API | 35~40h | 10h | 2021/12/? | 2023/02/16 |
+| [Lab power supply](#lab-power-supply) | electronic | 12h | 10h | 2020/?/? | 2024/04/7 |
+| [Nuke plugin](#nuke-plugin) | scripting | 6h | 6h | 2024/04/9 | 2024/04/9 |
+| [Raspberry Minecraft server](#raspberry-minecraft-server) | admin | ~20h | 10 | 2022/?/? | present |
 
 ## Honorable mentions
 
-### tetris
+### Tetris
+I have an ongoing project of implementing a version of tetris in every language I mastered. I had made a version of it using python, saddly it was lost in one of my spring cleaning of my hard drives. I will make it again but I do not currently have the time.
 
-### forging mechanics
+### Forging mechanics
+A friend had an idea for a video game in which the player played as a blacksmith. He wanted a system that could simulate the behaviour of hot metal when struck with a hammer.
+I designed for him the algorithm to be used. I worked as follows:
+
+- 1. Apporximate the shape to a image in pixels. the shape sould be black, on a white backgound. 
+- 2. To simulate a hammer blow, the shape of the hammer will be subtracted from the metal. *keep track of number of pixels removed* 
+- 3. All the pixels of the edge should be lihted up with the number of pixels removed previously shared amongs the edge pixels.
+- 4. Te metal deformation is then achieved bi looking at pixels idividualy and adding the curent value of the pixel to all adjacent pixels of lower value (the value should be shared).
+- 5. rince and repeat.
 
 ### pc upgrades
+I seem to be the default nerd for my frends when they need advice when choosing computer parts. I helped my mother choose a laptop, I build and spect a desktop for a friend, troubleshooted the laptop of my brother. 
+
+I seem to do a lot of boring it for friends and family. But I do not see it as a reflection of EPHEC skills, so it is not proposed for the hours count.
 
 ## Details
 
 ### Catch the flag
+The catch the flag was my first group activity, I went with firends. Initially, I only went for the hours but I took to the game, and found it really fun. I am glad that I participated in my first year, it allowed me to see all the subects I would interact with in the coming years. The fact that I went with frends meant I had a lot of fun poking around at problems during the day.
+
+Sadly I no longer have access to the score of my group. But, if memory serves, we were not last but not far from it. Lukilly, I dont recall beeing saddened by it, I remember feeling happy we went this far (being noobies an all).
+
+<details markdown="block">
+<summary>proof</summary>
+
+![](/assets/ctf.png){: .page}
+</details>
 
 ### Hackaton
 In october of 2022 I participated in an Hackaton at EPHEC-LLN on the subject of green developement. The objective was to come up with and idea of app/website that would help solve an issue liked with sustainable developement. The idea we came up with was a wesite that would be a News source but only chowing positive articles. To reduce the need for administrators and content managers, we planned the site to work colaboratively. A bit like wikipedia.
@@ -36,7 +57,7 @@ It was really interesting to have the perspective of a marketing student while d
 <details markdown="block">
 <summary>proof</summary>
 
-![](/assets/hackaton.jpg)
+![](/assets/hackaton.jpg){: .page}
 </details>
 
 ### Discord bot
