@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+
+<script>
+/*
+notes:
+- the page always sends a signal when connected
+- the curent delay between transmissions is 100ms
+- the signal sent is a string of two numbers going from -10 to 10, separated by a dollar sign ($)
+- the accelerometer is on by default (impact on the sliders for visuals)
+- the value of the acelerometer is only send if one of the thum buttons (grey and translusent) is pressed
+- the accelerometer is disabled suspended if the manual mode is started
+- !!! the manual mode has no safety on the phone side!!! drop it at your own risks
+
+- modifications where made to the base code (I can't remembre witch ones ^^)
+*/
+let myInterval;
+let characteristicCache = null;
+let deviceCache = null;
+let readBuffer = '';
+let rightSpeed = "0"; 
+let leftSpeed = "0";
+let old_rightSpeed = "0";
+let old_leftSpeed = "0";
+let old_armActivate = "0";
+let armActivate = "0";
+let operatingSystem = "";
+let compt = 1;
+
+function get_os() {
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        operatingSystem = "iOS"
+        }
+        else if (window.DeviceMotionEvent !== undefined) {
+            operatingSystem = "Android"
+        }
+        else {
+            operatingSystem = "other"
+        }
+}
+function updateSpeed(left_speed, right_speed) {
+    leftSpeed = left_speed;
+    rightSpeed = right_speed;
+}
+function updateArm(arm_bool) {
+    armActivate = arm_bool;
+}
+
+// Bluetooth actions ---------------------------------------------------------------------------------
+function connect() {
+    return (deviceCache ? Promise.resolve(deviceCache) :
+        requestBluetoothDevice()).
+    then(device => connectDeviceAndCacheCharacteristic(device)).
+    then(characteristic => startNotifications(characteristic)).
+    then(myInterval = setInterval(sendingBLEinfo, 100)).
+    catch(error => handleError(error));
+}
+function disconnect() {
+    clearInterval(myInterval); //stop sending data every time
+    if (deviceCache) {
+        console.log('Disconnecting from "' + deviceCache.name + '" bluetooth device...');
+        deviceCache.removeEventListener('gattserverdisconnected',
+            handleDisconnection);
+
+        if (deviceCache.gatt.connected) {
+            deviceCache.gatt.disconnect();
+            console.log('"' + deviceCache.name + '" bluetooth device disconnected');
+        }
+        else {
+            console.log('"' + deviceCache.name +
+                '" bluetooth device is already disconnected');
+        }
+    }
+
+    // Added condition
+    if (characteristicCache) {
+        characteristicCache.removeEventListener('characteristicvaluechanged',
+            handleCharacteristicValueChanged);
+        characteristicCache = null;
+    }
+
+    deviceCache = null;
+}
+function sendingBLEinfo() {
+    let out = "";
+    compt -= 1;
+    if (compt <= 0) {
+        out += "BAT0LIV0FLP0";
+        compt = 15;
+    }
+    if (leftSpeed != old_leftSpeed) {
+        out += "LFT" + leftSpeed;
+    }
+    if (rightSpeed != old_rightSpeed) {
+        out += "RGT" + rightSpeed;
+    }
+    if (armActivate != old_armActivate) {
+        out += "ARM" + armActivate;
+    }
+    old_armActivate = armActivate;
+    old_leftSpeed = leftSpeed;
+    old_rightSpeed = rightSpeed;
+    send(out, true);
+}
+function receive(data) {
+    console.log(data);
+    const charac = /(BAT|LIV|FLP)(\d+)/g;
+    let result;
+    const sameCmd = {};
+
+    while ((result = charac.exec(data)) !== null) {
+        const cmdCode = result[1];
+        const cmdValue = parseInt(result[2], 10);
+
+        if (sameCmd[cmdCode]) {
+            throw new Error(`The command '${cmdCode}' is duplicate`);
+        } else {
+            sameCmd[cmdCode] = true;
+        }
+
+        // update values
+        if (cmdCode === 'BAT') {
+            updateBattery(cmdValue);
+        } else if (cmdCode === 'LIV') {
+            updateLives(cmdValue);
+        } else if (cmdCode === 'FLP') {
+            updateFall(cmdValue);
+        }
+        else {
+            continue;
+        }
+    }
+}
+function handleError(error) {
+    let bluetooth_button = document.getElementById("bluetooth_button");
+    console.log(error);
+    bluetooth_button.classList.remove("connected");
+    bluetooth_button.classList.remove("connecting");
+    bluetooth_button.classList.add("disconnected");
+}
+
+// General Bluetooth ----------------------------------------------------------------------------------
+function startNotifications(characteristic) {
+    console.log('Starting notifications...');
+
+    return characteristic.startNotifications().
+    then(() => {
+        console.log('Notifications started');
+        // Added line
+        characteristic.addEventListener('characteristicvaluechanged',
+            handleCharacteristicValueChanged);
+    });
+}
+function requestBluetoothDevice() {
+    console.log('Requesting bluetooth device...');
+
+    return navigator.bluetooth.requestDevice({
+        filters: [{
+             services: [0xFFE0]
+        }],
+    }).
+    then(device => {
+        console.log('"' + device.name + '" bluetooth device selected');
+        deviceCache = device;
+
+        // Added line
+        deviceCache.addEventListener('gattserverdisconnected',
+            handleDisconnection);
+
+        return deviceCache;
+    });
+}
+function connectDeviceAndCacheCharacteristic(device) {
+    if (device.gatt.connected && characteristicCache) {
+        return Promise.resolve(characteristicCache);
+    }
+
+    console.log('Connecting to GATT server...');
+
+    return device.gatt.connect().
+    then(server => {
+        console.log('GATT server connected, getting service...');
+
+        return server.getPrimaryService(0xFFE0);
+    }).
+    then(service => {
+        console.log('Service found, getting characteristic...');
+
+        return service.getCharacteristic(0xFFE1);
+    }).
+    then(characteristic => {
+        console.log('Characteristic found');
+        characteristicCache = characteristic;
+        let bluetooth_button = document.getElementById("bluetooth_button");
+        bluetooth_button.classList.remove("connecting");
+        bluetooth_button.classList.add("connected");
+        return characteristicCache;
+    });
+}
+function handleDisconnection(event) {
+    let device = event.target;
+    let bluetooth_button = document.getElementById("bluetooth_button");
+    bluetooth_button.classList.remove("connected");
+    bluetooth_button.classList.remove("connecting");
+    bluetooth_button.classList.add("disconnected");
+
+    console.log('"' + device.name +
+        '" bluetooth device disconnected, trying to reconnect...');
+
+    connectDeviceAndCacheCharacteristic(device).
+    then(characteristic => startNotifications(characteristic)).
+    catch(error => console.log(error));
+}
+function send(data, logging = true) {
+    data = String(data);
+
+    if (!data || !characteristicCache) {
+        return;
+    }
+
+    data += '\n';
+
+    if (data.length > 20) {
+        let chunks = data.match(/(.|[\r\n]){1,20}/g);
+
+        writeToCharacteristic(characteristicCache, chunks[0]);
+
+        for (let i = 1; i < chunks.length; i++) {
+            setTimeout(() => {
+                writeToCharacteristic(characteristicCache, chunks[i]);
+            }, i * 500);
+        }
+    }
+    else {
+        writeToCharacteristic(characteristicCache, data);
+    }
+
+    if (logging) {
+        console.log(data, 'out');
+    }
+}
+function writeToCharacteristic(characteristic, data) {
+    characteristic.writeValue(new TextEncoder().encode(data));
+}
+function handleCharacteristicValueChanged(event) {
+    let value = new TextDecoder().decode(event.target.value); //We want to decode byte to text
+
+    for (let c of value) { //we receve 20 bytes per 20 bytes, let's make one string until we reach \n
+        if (c === '\n') { //Be careful, now we need to add a line break when we use the serial monitor
+            let data = readBuffer.trim();
+            readBuffer = '';
+
+            if (data) {
+                receive(data);
+            }
+        }
+        else {
+            readBuffer += c;
+        }
+    }
+}
+
+// Joystick -------------------------------------------------------------------------------------------
+let isDragging_boolean = false;
+
+function moveJoystick(e) {
+    if (isDragging_boolean) {
+        const rect = outerCircle.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left - rect.width / 2;
+        const offsetY = e.clientY - rect.top - rect.height / 2;
+        const maxDistance = rect.width/2;
+
+        let distance = (Math.hypot(offsetX, offsetY) / maxDistance) * 100;
+        distance = Math.min(distance, 100);
+        let logicAngle = (Math.atan2(offsetY, offsetX) * 180) / Math.PI;
+        let displayAngle = (logicAngle + 360 + 90) % 360;
+        displayAngle = 360 - displayAngle;
+        const limitedX = Math.cos((logicAngle * Math.PI) / 180) * (distance / 100) * maxDistance;
+        const limitedY = Math.sin((logicAngle * Math.PI) / 180) * (distance / 100) * maxDistance;
+
+        calculateMotorSpeeds((limitedX/maxDistance), (limitedY/maxDistance));
+
+        joystick.style.transform = `translate(-50%, -50%) translate(${limitedX}px, ${limitedY}px)`;
+    }
+}
+function startDrag(e) {
+  isDragging_boolean = true;
+  moveJoystick(e, isDragging_boolean);
+}
+function activateArms(activate_bool) {
+  updateArm(activate_bool.toString());
+}
+function endDrag(e) {
+    if (isDragging_boolean) {
+      isDragging_boolean = false;
+        resetJoystickPosition();
+    }
+}
+function updatePosition(angle, distance) {
+    calculateMotorSpeeds(angle, distance);
+}
+function resetJoystickPosition() {
+    joystick.style.transform = 'translate(-50%, -50%) translate(0, 0)';
+    updateSpeed("0", "0");
+}
+function calculateMotorSpeeds(x, y) {
+  let drive = -y;
+  let rotate = -x;
+  let maximum = Math.max(Math.abs(drive), Math.abs(rotate));
+  let total = drive + rotate;
+  let difference = drive - rotate;
+  let left, right;
+  if (drive >= 0) {
+    if (rotate >= 0) {
+      left = maximum;
+      right = difference;
+    } else {
+      left = total;
+      right = maximum;
+    }
+  } else {
+    if (rotate >= 0) {
+      left = total;
+      right = -maximum;
+    } else {
+      left = -maximum;
+      right = difference;
+    }
+  }
+  left = Math.floor(left*100);
+  right = Math.floor(right*100);
+  updateSpeed(left.toFixed(0), right.toFixed(0));
+  return [left, right];
+}
+
+// General --------------------------------------------------------------------------------------------
+let data;
+let joystick, outerCircle, actionButton, batteryPercentage, lifeContainer, batteryIcon;
+
+
+function init() {
+    joystick = document.getElementById('joystick');
+    outerCircle = document.getElementById('outerCircle');
+    actionButton = document.getElementById('actionButton');
+    batteryPercentage = document.getElementById('batteryPercentage');
+    lifeContainer = document.getElementById('lifeContainer');
+    batteryIcon = document.getElementById('batteryIcon');
+
+    joystick.addEventListener('mousedown', startDrag);
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('mousemove', moveJoystick);
+
+    actionButton.addEventListener('mousedown', function() {activateArms(1);});
+    actionButton.addEventListener('mouseup', function() {activateArms(0);});
+
+    get_os();
+    console.log("init");
+}
+
+//called on bluetooth button click
+function bluetooth_click() {
+    let bluetooth_button = document.getElementById("bluetooth_button");
+    if (bluetooth_button.classList.contains("connected")) {
+        bluetooth_button.classList.remove("connected");
+        bluetooth_button.classList.add("disconnected");
+        disconnect();
+    }
+    else if (bluetooth_button.classList.contains("disconnected")) {
+        bluetooth_button.classList.remove("disconnected");
+        bluetooth_button.classList.add("connecting");
+        connect();
+    }
+    console.log("bt");
+
+}
+
+</script>
+
+<style type="text/css" media="screen">
+:root {
+    --background-1: #252b38;
+    --background-2: #1f2937;
+    --background-3: #000b1d;
+    --border-color: rgb(55 65 81);
+    
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --shadow-color-light: rgba(255, 255, 255, 0.2);
+    --shadow: 0 1px 6px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+    
+    --red: rgb(220 38 38);
+    --red-hover: rgb(221, 83, 83);
+    --green: rgb(22 163 74);
+    --green-hover: rgb(75, 190, 117);
+    --blue: rgb(59 130 246);
+    --blue-hover: rgb(108, 148, 212);
+    
+    --text-size: 11pt;
+    --text-color: rgb(255, 255, 255);
+    --text-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --bt-image: url("https://cdn-icons-png.flaticon.com/512/9173/9173887.png");
+    overflow: hidden;
+}
+    
+html {
+    color: var(--text-color);
+    font-family: var(--text-font);
+    font-size: var(--text-size);
+}
+
+body {
+    background-color: var(--background-1);
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    -moz-user-select: none;
+}
+
+h1 {
+    font-size: 1.8em;
+    line-height: 1.8em;
+    font-weight: 700;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    line-height: 1.75em;
+    margin-top: 0;
+}
+
+.hidden { display: none; }
+
+button {
+    height: 2.2em;
+    border-radius: 1em;
+    margin: 0.3em;
+    outline: none;
+    border: none;
+    color: var(--text-color);
+    font-family: var(--text-font);
+    padding: 0 1em;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color: var(--blue);
+}
+button:hover {background-color: var(--blue-hover);}
+
+.am_a_button {
+    display: block;
+    width: fit-content;
+    height: 2.2em;
+    border-radius: 1em;
+    margin: 0.3em;
+    color: var(--text-color);
+    font-family: var(--text-font);
+    padding: 0.4em 1em;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color: var(--blue);
+    text-decoration: none;
+}
+.am_a_button:hover {
+    color: var(--text-color);
+    text-decoration: none;
+    background-color: var(--blue-hover);
+}
+
+:global(.life-icon) {
+    width: 5vh;
+    height: 5vh;
+    margin-right: 2vh;
+    margin-left: 2vh;
+}
+
+#lifeContainer {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    margin-top: 5vh;
+    user-select: none;
+    pointer-events: none;
+} 
+
+.battery {
+    position: absolute;
+    top: 3vh;
+    right: 3vh;
+    user-select: none;
+}
+
+.battery-icon {
+    border-radius: 1vh;
+    width: 10vh;
+    height: 4vh;
+    border: 1px solid white;
+    position: absolute;
+    top: 2vh;
+    right: 5vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#batteryPercentage {
+    color: #fff;
+}
+
+.action-button {
+    position: absolute;
+    bottom: 20%;
+    right: 15%;
+    text-align: center;
+    justify-content: center;
+    border: 3px solid transparent;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.button-text {
+    width: 15vh ;
+    height: 15vh;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2vh;
+    user-select: none;
+}
+
+.action-button:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.joystick-container {
+    position: absolute;
+    top: 33%;
+    left: 15%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.outer-circle {
+    position: relative;
+    width: 35vh;
+    height: 35vh;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+}
+
+.circle-around {
+    position: absolute;
+    width: 103%;
+    height: 103%;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.joystick {
+    width: 16vh;
+    height: 16vh;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%; 
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    border: 4px solid #ffffff;
+}
+
+#btcontainer {
+    position: absolute;
+    top: 5vh;
+    left: 7vh;
+}
+
+#bluetooth_button {
+    margin: auto auto;
+    border-radius: 50%;
+    height: 8vh;
+    width: 8vh;
+
+    border: 3px solid #A8A9AD;
+    background-image: var(--bt-image);
+    background-size: contain;
+}
+:global(#bluetooth_button.connected) { border-color: var(--green); }
+:global(#bluetooth_button.disconnected) { border-color: var(--red); } 
+:global(#bluetooth_button.connecting) { border-color: #fd9621; }
+
+@media screen and (max-width: 767px) and (orientation: portrait) {
+    #bluetooth_button { height: 6vh; width: 6vh; }
+    .lives { margin-top: 15vh; }
+    #btcontainer { position: absolute; top: 4vh; }
+    :global(.life-icon) { width: 4vh; height: 4vh; }
+    .battery-icon { width: 8vh; height: 3vh; }
+    .outer-circle { width: 25vh; height: 25vh; }
+    .joystick { width: 10vh; height: 10vh; }
+    .button-text { width: 10vh ; height: 10vh; }
+    .joystick-container { top: 60%; left: 15%; }
+    .action-button { bottom: 50vh; }
+}
+
+@media screen and (max-width: 950px) and (orientation: landscape) {
+    #bluetooth_button { height: 18vh; width: 18vh; }
+    :global(.life-icon) { width: 10vh; height: 10vh; }
+    .battery-icon { width: 25vh; height: 10vh; }
+    .outer-circle { width: 55vh; height: 55vh; }
+    .joystick { width: 25vh; height: 25vh; }
+    .button-text { width: 35vh ; height: 35vh; }
+    .joystick-container { top: 25%; }
+}
+
+#title {
+    display: block;
+    text-align: center;
+}
+</style>
+
+<body onload="init();">
+    <div id="title">
+        <h2>You're playing in a free roaming</h2>
+    </div>
+
+    <div class="battery">
+        <div class="battery-icon" id="batteryIcon">
+            <span id="batteryPercentage"></span>
+        </div>
+    </div>    
+    <div class="lives">
+        <div id="lifeContainer" class="life-container"></div>
+    </div>
+    <div class="action-button" id="actionButton">
+        <div class="button-text">
+            <p>Press to move arms</p>
+        </div>
+    </div>
+    <div class="joystick-container">
+        <div id="outerCircle" class="outer-circle">
+            <div class="circle-around"></div>
+        </div>
+        <div id="joystick" class="joystick">
+            <div class="inner-circle"></div>
+        </div>
+    </div>
+    <div id="btcontainer"><button id="bluetooth_button" type="button" class="disconnected"
+        onclick="bluetooth_click();"></button>
+    </div>
+</body>
