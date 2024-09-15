@@ -466,7 +466,7 @@ button:hover {background-color: var(--blue-hover);}
     background-color: var(--blue-hover);
 }
 
-:global(.life-icon) {
+.life-icon {
     width: 5vh;
     height: 5vh;
     margin-right: 2vh;
@@ -593,9 +593,9 @@ button:hover {background-color: var(--blue-hover);}
     background-image: var(--bt-image);
     background-size: contain;
 }
-:global(#bluetooth_button.connected) { border-color: var(--green); }
-:global(#bluetooth_button.disconnected) { border-color: var(--red); } 
-:global(#bluetooth_button.connecting) { border-color: #fd9621; }
+#bluetooth_button.connected { border-color: var(--green); }
+#bluetooth_button.disconnected { border-color: var(--red); } 
+#bluetooth_button.connecting { border-color: #fd9621; }
 
 @media screen and (max-width: 767px) and (orientation: portrait) {
     #bluetooth_button { height: 6vh; width: 6vh; }
